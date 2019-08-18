@@ -1,0 +1,76 @@
+<html>
+
+<style type="text/css">
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .game-container {
+        border: 1px solid black;
+        height: 800px;
+        width: 800px;
+
+        left: calc(50% - 400px) !important;
+        top: calc(50% - 400px) !important;
+        position: absolute !important;
+    }
+
+    .controls {
+        height: 40px;
+        width: 800px;
+        text-align: center;
+
+        left: calc(50% - 400px) !important;
+        top: calc(50% + 410px) !important;
+        position: absolute;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.slim.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.2/paper-full.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/synaptic/1.1.4/synaptic.js"></script>
+
+<script type="text/javascript" src="js/game/Mouse.js"></script>
+<script type="text/javascript" src="js/game/MouseMustache.js"></script>
+<script type="text/javascript" src="js/game/MouseTrap.js"></script>
+<script type="text/javascript" src="js/game/Cheese.js"></script>
+<script type="text/javascript" src="js/game/Wall.js"></script>
+<script type="text/javascript" src="js/game/Info.js"></script>
+<script type="text/javascript" src="js/game/Game.js"></script>
+<script type="text/javascript" src="js/ia/Genetic.js"></script>
+<script type="text/javascript">
+
+    let game = new Game(800, 800);
+
+    $(document).ready(function () {
+        game.start('game');
+    });
+
+    function moveLeft() {
+        game.moveLeft();
+    };
+
+    function moveRight() {
+        game.moveRigth();
+    };
+
+    function moveForward() {
+        game.goForward();
+    };
+
+</script>
+
+<body>
+    <div class="game-container">
+        <canvas id="game"></canvas>
+    </div>
+    <div class="controls">
+        <button onclick="moveLeft()">Left</button>
+        <button onclick="moveRight()">Right</button>
+        <button onclick="moveForward()">Forward</button>
+    </div>
+</body>
+
+</html>
