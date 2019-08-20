@@ -64,8 +64,10 @@ MouseMustache.prototype.checkObstacle = function (obstacle) {
     });
 };
 
+MouseMustache.prototype.inputs = function() {
+    return [this.intercepted.length > 0];
+};
+
 MouseMustache.prototype.clear = function () {
-
-    this.object.segments = [];
-
+    this.object.remove();
 };

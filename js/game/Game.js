@@ -4,7 +4,9 @@ function Game() {
     this.height = 800;
 
     this.trapsCount = 5;
-    this.ratsCount = 1;
+    this.ratsCount = 30;
+
+    this.mouseMustaches = 3;
 
 };
 
@@ -27,19 +29,19 @@ Game.prototype.start = function (canvasId) {
         this.traps.push(new MouseTrap());
 
     this.genetic = new Genetic();
-    this.genetic.createNetwork(this.ratsCount);
+    this.genetic.createNetwork(this.ratsCount, 3, 10, 3);
 
     this.restart();
 };
 
 Game.prototype.restart = function () {
 
-    this.score = 0;
+    this.frame = 0;
     this.active = 0;
 
     this.rats = [];
     for (let i = 0; i < this.ratsCount; i++)
-        this.rats.push(new Mouse());
+        this.rats.push(new Mouse(this.mouseMustaches));
 
     this.loop();
 
@@ -50,29 +52,50 @@ Game.prototype.end = function () {
 
     setTimeout(() => {
         this.restart();
-    }, 500);
+    }, 100);
 };
 
 Game.prototype.loop = function () {
 
-    this.liveRats = this.rats.filter(x => x.alive).length;
+    this.frame++;
 
-    this.info.update(this.score, this.liveRats, this.genetic.generation, this.genetic.fitness, this.active);
+    this.liveRats = this.rats.filter(x => x.alive && !x.ends).length;
+    let alreadyEnds = this.rats.some(x => x.ends);
 
-    this.rats.forEach(m => {
-        m.update(this.cheese, ...this.traps, this.wall, this.cheese);
+    this.info.update(this.frame, this.liveRats, this.genetic.generation, this.genetic.fitness, this.active);
 
-        if (m.score > this.score)
-            this.score = m.score;
+    this.rats.forEach((m, index) => {
+        m.update(...this.traps, this.wall, this.cheese);
 
+        this.genetic.executeNetwork(index, m.score);
+        this.activateNetwork(m, index);
     });
 
     if (this.liveRats > 0) {
         this.animation = requestAnimationFrame(this.loop.bind(this));
     } else {
+        this.rats.forEach(m => m.clear());
         this.end();
-        this.genetic.crossOver();
+        this.genetic.crossOverNetworks(alreadyEnds);
     }
+};
+
+Game.prototype.activateNetwork = function (mouse, index) {
+
+    let inputs = mouse.inputs();
+
+    var active = this.genetic.activateNetwork(index, inputs);
+
+    if (active[0] > 0.52)
+        mouse.moveLeft();
+
+    if (active[1] > 0.52)
+        mouse.moveRigth();
+
+    if (active[2] > 0.52)
+        mouse.goForward(this.cheese);
+
+    this.active = active[1];
 };
 
 Game.prototype.moveLeft = function () {

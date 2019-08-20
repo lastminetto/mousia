@@ -1,6 +1,10 @@
-function Mouse() {
+function Mouse(mustaches) {
 
     this.score = 0;
+
+    this.framesWithoutMove = 0;
+    this.framesWithoutIncreaseY = 0;
+    this.maxY = 0;
 
     this.angle = 0;
     this.x = 395;
@@ -9,9 +13,9 @@ function Mouse() {
     this.positionChanged = true;
 
     this.angleStep = 5;
-    this.speed = 5;
+    this.speed = 15;
 
-    this.mustachesCount = 5;
+    this.mustachesCount = mustaches;
 
     this.blocked = false;
     this.alive = true;
@@ -49,32 +53,46 @@ function Mouse() {
 
 Mouse.prototype.inputs = function () {
 
+    let mustacheInputs = [];
+
+    this.mustaches.forEach(m => mustacheInputs.push(...m.inputs()));
+
+    let mustacheValue = 0;
+
+    if (mustacheInputs[0])
+        mustacheValue += 1;
+    if (mustacheInputs[1])
+        mustacheValue += 3;
+    if (mustacheInputs[2])
+        mustacheValue += 5;
+
+    return [
+        mustacheValue,
+        this.y,
+        this.x
+    ];
 };
 
-Mouse.prototype.update = function (cheese) {
+Mouse.prototype.update = function () {
 
     if (this.ends || !this.alive)
         return;
+
+    this.framesWithoutIncreaseY++;
 
     let to = new paper.Point(this.x, this.y);
     this.object.setPosition(to);
 
     if (this.positionChanged) {
-
-        if (!this.blocked) {
-            let cheesePoint = cheese.object.getPosition().getDistance(to);
-            let cheeseDistance = this.object.getPosition().getDistance(cheesePoint);
-
-            this.score += (800 - +cheeseDistance.toFixed(0));
-        }
-
         this.positionChanged = false;
+    } else {
+        this.framesWithoutMove++;
     }
 
     for (i = 0; i < arguments.length; i++) {
         let obstacle = arguments[i];
 
-        if (this.x > 800 || this.y > 800 || this.x < 0 || this.y < 0) {
+        if (this.x > 800 || this.y > 800 || this.x < 0 || this.y < 0 || this.framesWithoutMove > 30 || this.framesWithoutIncreaseY > 50) {
             this.alive = false;
             continue;
         }
@@ -97,6 +115,16 @@ Mouse.prototype.update = function (cheese) {
             m.update();
             m.checkObstacle(obstacle);
         });
+    }
+
+    if (!this.alive || this.ends) {
+        this.mustaches.forEach(m => m.clear());
+
+        this.forward.remove();
+        this.backward.remove();
+
+        if (this.ends)
+            this.score *= 2;
     }
 
     this.updateDiretionLine();
@@ -134,18 +162,32 @@ Mouse.prototype.moveRigth = function () {
     this.updateDiretionLine();
 };
 
-Mouse.prototype.goForward = function () {
-
-    this.positionChanged = true;
+Mouse.prototype.goForward = function (cheese) {
 
     if (!this.blocked) {
 
         let to = this.forward.segments[1].getPoint();
 
-        this.x = to.x;
-        this.y = to.y;
+        if (this.x != to.x || this.y != to.y) {
 
-        this.updateDiretionLine();
+            this.positionChanged = true;
+
+            this.x = to.x;
+            this.y = to.y;
+
+            let cheesePoint = cheese.object.getPosition();
+            let cheeseDistance = this.object.getPosition().getDistance(cheesePoint);
+
+            this.score = this.y + (715 - cheeseDistance);
+
+            if (this.y > this.maxY) {
+
+                this.maxY = this.y * 2;
+                this.framesWithoutIncreaseY = 0;
+            }
+
+            this.updateDiretionLine();
+        }
     }
 };
 
@@ -162,4 +204,8 @@ Mouse.prototype.updateDiretionLine = function () {
     this.backward.segments[0].setPoint(fromBack);
     this.backward.segments[1].setPoint(from);
     this.backward.rotate(this.angle, from);
+};
+
+Mouse.prototype.clear = function () {
+    this.object.remove();
 };
