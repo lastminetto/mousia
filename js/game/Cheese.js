@@ -11,4 +11,4 @@ function Cheese() {
     this.object.strokeColor = 'pink';
     this.object.strokeWidth = 2;
 
-}
+};

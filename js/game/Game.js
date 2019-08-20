@@ -59,7 +59,13 @@ Game.prototype.loop = function () {
 
     this.info.update(this.score, this.liveRats, this.genetic.generation, this.genetic.fitness, this.active);
 
-    this.rats.forEach(r => r.update(...this.traps, this.wall, this.cheese));
+    this.rats.forEach(m => {
+        m.update(this.cheese, ...this.traps, this.wall, this.cheese);
+
+        if (m.score > this.score)
+            this.score = m.score;
+
+    });
 
     if (this.liveRats > 0) {
         this.animation = requestAnimationFrame(this.loop.bind(this));
@@ -71,12 +77,10 @@ Game.prototype.loop = function () {
 
 Game.prototype.moveLeft = function () {
     this.rats.filter(r => r.alive && !r.ends).forEach(r => r.moveLeft());
-    this.goForward();
 };
 
 Game.prototype.moveRigth = function () {
     this.rats.filter(r => r.alive && !r.ends).forEach(r => r.moveRigth());
-    this.goForward();
 };
 
 Game.prototype.goForward = function () {

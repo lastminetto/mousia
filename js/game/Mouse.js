@@ -1,13 +1,17 @@
 function Mouse() {
 
+    this.score = 0;
+
     this.angle = 0;
     this.x = 395;
     this.y = 35;
 
-    this.angleStep = 10;
+    this.positionChanged = true;
+
+    this.angleStep = 5;
     this.speed = 5;
 
-    this.mustachesCount = 10;
+    this.mustachesCount = 5;
 
     this.blocked = false;
     this.alive = true;
@@ -17,23 +21,23 @@ function Mouse() {
 
     this.object = new paper.Path.Circle(to, 10);
     this.object.fillColor = '#ececec';
-    this.object.strokeColor = 'red';
+    this.object.strokeColor = 'gray';
     this.object.strokeWidth = 2;
 
     let directionFrom = new paper.Point(this.x, this.y);
     let directionTo = new paper.Point(this.x, this.y + this.speed);
 
-    this.direction = new paper.Path.Line(directionFrom, directionTo);
-    this.direction.closed = true;
-    this.direction.strokeColor = 'green';
-    this.direction.strokeWidth = 2;
+    this.forward = new paper.Path.Line(directionFrom, directionTo);
+    this.forward.closed = true;
+    this.forward.strokeColor = 'green';
+    this.forward.strokeWidth = 2;
 
     let backFrom = new paper.Point(this.x, this.y - this.speed);
 
-    this.back = new paper.Path.Line(backFrom, directionFrom);
-    this.back.closed = true;
-    this.back.strokeColor = 'blue';
-    this.back.strokeWidth = 2;
+    this.backward = new paper.Path.Line(backFrom, directionFrom);
+    this.backward.closed = true;
+    this.backward.strokeColor = 'red';
+    this.backward.strokeWidth = 2;
 
     let mouseAngleStep = 180 / (this.mustachesCount - 1);
 
@@ -47,10 +51,33 @@ Mouse.prototype.inputs = function () {
 
 };
 
-Mouse.prototype.update = function () {
+Mouse.prototype.update = function (cheese) {
+
+    if (this.ends || !this.alive)
+        return;
+
+    let to = new paper.Point(this.x, this.y);
+    this.object.setPosition(to);
+
+    if (this.positionChanged) {
+
+        if (!this.blocked) {
+            let cheesePoint = cheese.object.getPosition().getDistance(to);
+            let cheeseDistance = this.object.getPosition().getDistance(cheesePoint);
+
+            this.score += (800 - +cheeseDistance.toFixed(0));
+        }
+
+        this.positionChanged = false;
+    }
 
     for (i = 0; i < arguments.length; i++) {
         let obstacle = arguments[i];
+
+        if (this.x > 800 || this.y > 800 || this.x < 0 || this.y < 0) {
+            this.alive = false;
+            continue;
+        }
 
         let intersections = this.object.getIntersections(obstacle.object);
 
@@ -72,16 +99,13 @@ Mouse.prototype.update = function () {
         });
     }
 
-    let to = new paper.Point(this.x, this.y);
-    this.object.setPosition(to);
-
     this.updateDiretionLine();
 };
 
 Mouse.prototype.moveLeft = function () {
 
     if (this.blocked) {
-        let to = this.back.segments[0].getPoint();
+        let to = this.backward.segments[0].getPoint();
 
         this.x = to.x;
         this.y = to.y;
@@ -97,7 +121,7 @@ Mouse.prototype.moveLeft = function () {
 Mouse.prototype.moveRigth = function () {
 
     if (this.blocked) {
-        let to = this.back.segments[0].getPoint();
+        let to = this.backward.segments[0].getPoint();
 
         this.x = to.x;
         this.y = to.y;
@@ -112,8 +136,11 @@ Mouse.prototype.moveRigth = function () {
 
 Mouse.prototype.goForward = function () {
 
+    this.positionChanged = true;
+
     if (!this.blocked) {
-        let to = this.direction.segments[1].getPoint();
+
+        let to = this.forward.segments[1].getPoint();
 
         this.x = to.x;
         this.y = to.y;
@@ -126,13 +153,13 @@ Mouse.prototype.updateDiretionLine = function () {
     let from = new paper.Point(this.x, this.y);
     let to = new paper.Point(this.x, this.y + this.speed);
 
-    this.direction.segments[0].setPoint(from);
-    this.direction.segments[1].setPoint(to);
-    this.direction.rotate(this.angle, from);
+    this.forward.segments[0].setPoint(from);
+    this.forward.segments[1].setPoint(to);
+    this.forward.rotate(this.angle, from);
 
     let fromBack = new paper.Point(this.x, this.y - this.speed);
 
-    this.back.segments[0].setPoint(fromBack);
-    this.back.segments[1].setPoint(from);
-    this.back.rotate(this.angle, from);
+    this.backward.segments[0].setPoint(fromBack);
+    this.backward.segments[1].setPoint(from);
+    this.backward.rotate(this.angle, from);
 };

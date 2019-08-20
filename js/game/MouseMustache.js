@@ -11,7 +11,7 @@ function MouseMustache(mouse, angle) {
 
     this.object = new paper.Path.Line(from, to);
     this.object.closed = true;
-    this.object.strokeColor = 'red';
+    this.object.strokeColor = 'blue';
 };
 
 MouseMustache.prototype.getInitialPoints = function () {
@@ -55,12 +55,12 @@ MouseMustache.prototype.checkObstacle = function (obstacle) {
     }
 
     this.intercepted.reverse().forEach(o => {
-
         let oi = this.object.getIntersections(o.object);
-
-        let to = oi[0].getPoint();
-        this.object.segments[1].setPoint(to);
-        this.object.opacity = 0.3;
+        if (oi.length > 0) {
+            let to = oi[0].getPoint();
+            this.object.segments[1].setPoint(to);
+            this.object.opacity = 0.3;
+        }
     });
 };
 
